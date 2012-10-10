@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<import_feed>
+	<test_object id="1">
+		<name>Test Object 1</name>
+		<description>Test Object 1 Description</description>
+		<locations>123,124,125</locations>
+	</test_object>
+	<test_object id="2">
+		<name>Test Object 2</name>
+		<description>Test Object 2 Description</description>
+		<locations>124</locations>
+	</test_object>
+	<test_object id="3">
+		<name>Test Object 3</name>
+		<description>Test Object 3 Description</description>
+		<locations>124</locations>
+	</test_object>
+</import_feed>
