@@ -18,7 +18,6 @@ $scriptSettings['description'] = 'NXC Import';
 $scriptSettings['use-session'] = true;
 $scriptSettings['use-modules'] = true;
 $scriptSettings['use-extensions'] = true;
-$scriptSettings['site-access'] = 'siteadmin';
 
 $script = eZScript::instance( $scriptSettings );
 $script->startup();
