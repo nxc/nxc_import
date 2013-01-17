@@ -57,7 +57,15 @@ class nxcImportController {
 
 				$currentStateHash = $this->config->getStateHash( $objectData );
 
+				$allOjectsInFeedRemoteIDs[] = $objectData['remoteID'];
+
 				$object = eZContentObject::fetchByRemoteID( $objectData['remoteID'] );
+				$result = $this->config->preProcessCallback( $object, $objectData );
+				if( $result === false ) {
+					$this->debug( '[Skipped by preProcessCallback] Remote ID: "' . $objectData['remoteID'] . '"', array( 'blue' ) );
+					continue;
+				}
+
 				if( $object instanceof eZContentObject ) {
 					if( $update === false ) {
 						$this->debug( '[Skipped] "' . $object->attribute( 'name' ) . '"', array( 'blue' ) );
@@ -128,7 +136,7 @@ class nxcImportController {
 					}
 				}
 
-				$allOjectsInFeedRemoteIDs[] = $objectData['remoteID'];
+				$this->config->postProcessCallback( $object, $objectData );
 			}
 
 			$allOjectsInFeedRemoteIDs = array_unique( $allOjectsInFeedRemoteIDs );

@@ -145,6 +145,14 @@ abstract class nxcImportConfig {
 		return md5( $state );
 	}
 
+	public function preProcessCallback( $object, array $objectData ) {
+		return true;
+	}
+
+	public function postProcessCallback( $object, array $objectData ) {
+		return true;
+	}
+
 	public function __toString() {
 		return get_class( $this ) . ', source: ' . $this->source;
 	}
