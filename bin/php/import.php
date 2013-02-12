@@ -6,7 +6,7 @@
  * @date    05 Nov 2010
  **/
 
-ini_set( 'memory_limit', '512M' );
+ini_set( 'memory_limit', '1024M' );
 
 require 'autoload.php';
 
@@ -105,4 +105,3 @@ if( $importController->counter['remove'] > 0 ) {
 
 unset( $importController );
 $script->shutdown( 0 );
-?>

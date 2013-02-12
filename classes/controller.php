@@ -6,8 +6,8 @@
  * @date    05 Nov 2010
  **/
 
-class nxcImportController {
-
+class nxcImportController
+{
 	public $config;
 	public $counter = array(
 		'create' => 0,
@@ -47,7 +47,7 @@ class nxcImportController {
 				);
 
 				$objectData['remoteID']                = $this->config->getObjectRemoteID( $objectData );
-				$objectData['mainParentNodeID']        = (int) $this->config->getMainParentNodeID( $objectData );
+				$objectData['mainParentNodeID']        = $this->config->getMainParentNodeID( $objectData );
 				$objectData['adittionalParentNodeIDs'] = (array) $this->config->getAdittionalParentNodeIDs( $objectData );
 				$objectData['attributes']              = (array) $this->config->transformObjectAttributes( $objectData );
 				$objectData['language']                = $this->config->getLanguage( $objectData );
@@ -81,27 +81,35 @@ class nxcImportController {
 							);
 							$this->counter['skip']++;
 						} else {
-							$parentNode = eZContentObjectTreeNode::fetch( $objectData['mainParentNodeID'] );
-							if( $parentNode instanceof eZContentObjectTreeNode ) {
-								$this->pcHandler->updateObject(
-									array(
-										'object'                  => $object,
-										'attributes'              => $objectData['attributes'],
-										'parentNode'              => $parentNode,
-										'additionalParentNodeIDs' => $objectData['adittionalParentNodeIDs'],
-										'visibility'              => (bool) $objectData['visibility']
-									)
+							$parentNode = false;
+							if( $objectData['mainParentNodeID'] !== false ) {
+								$parentNode = eZContentObjectTreeNode::fetch( $objectData['mainParentNodeID'] );
+							}
+							if(
+								$objectData['mainParentNodeID'] !== false
+								&& $parentNode instanceof eZContentObjectTreeNode === false
+							) {
+								$this->statistics['remove'][] = $object->attribute( 'name' );
+								$this->counter['remove']++;
+								nxcImportStateHash::remove( $object->attribute( 'remote_id' ) );
+								$this->pcHandler->removeObject( $object );
+							} else {
+								$params = array(
+									'object'                  => $object,
+									'attributes'              => $objectData['attributes'],
+									'additionalParentNodeIDs' => $objectData['adittionalParentNodeIDs'],
+									'visibility'              => (bool) $objectData['visibility']
 								);
+								if( $objectData['mainParentNodeID'] !== false ) {
+									$params['parentNode'] = $parentNode;
+								}
+
+								$this->pcHandler->updateObject( $params );
 								$this->statistics['update'][] = $object->attribute( 'name' );
 								$this->counter['update']++;
 								nxcImportStateHash::update( $objectData['remoteID'], $currentStateHash );
 								$object->resetDataMap();
 								eZContentObject::clearCache( $object->attribute( 'id' ) );
-							} else {
-								$this->statistics['remove'][] = $object->attribute( 'name' );
-								$this->counter['remove']++;
-								nxcImportStateHash::remove( $object->attribute( 'remote_id' ) );
-								$this->pcHandler->removeObject( $object );
 							}
 						}
 					}
@@ -174,4 +182,3 @@ class nxcImportController {
 		fclose( $this->logFileHandler );
 	}
 };
-?>

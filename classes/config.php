@@ -6,8 +6,8 @@
  * @date    05 Nov 2010
  **/
 
-abstract class nxcImportConfig {
-
+abstract class nxcImportConfig
+{
 	abstract public function getDataList();
 	abstract protected function transformObjectAttribute( array $objectData, $attributeIdentifier );
 
@@ -157,4 +157,3 @@ abstract class nxcImportConfig {
 		return get_class( $this ) . ', source: ' . $this->source;
 	}
 };
-?>
