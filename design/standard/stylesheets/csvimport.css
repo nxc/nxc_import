@@ -1,0 +1,8 @@
+.attributes-mapping-loader {
+	text-align: center;
+	margin: 15px 0;
+}
+.attributes-mapping-loader>.loader-icon {
+	display: inline-block;
+	zoom: 1;
+}
