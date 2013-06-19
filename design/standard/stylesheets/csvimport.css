@@ -6,3 +6,11 @@
 	display: inline-block;
 	zoom: 1;
 }
+
+div.attributes-mapping-wrapper td input.static-value {
+	width: 80px;
+}
+
+div.attributes-mapping-wrapper td input.callback {
+	width: 380px;
+}

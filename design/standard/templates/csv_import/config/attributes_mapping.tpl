@@ -15,28 +15,28 @@
 			<td>{$class_attribute.data_type_string}</td>
 			<td>
 				<select name="attributes_mapping[{$class_attribute.identifier}][csv_column]">
-					<option value="-1">{'Is not imported'|i18n( 'extension/nxc_import' )}</option>
-					{for 0 to 999 as $i}
+					<option value="-1">{'Skip'|i18n( 'extension/nxc_import' )}</option>
+					{for 1 to 99 as $i}
 					<option value="{$i}"{if and( is_set( $config.attributes_mapping[$class_attribute.identifier] ), eq( $config.attributes_mapping[$class_attribute.identifier].csv_column, $i ) )} selected="selected"{/if}>{$i}</option>
 					{/for}
 				</select>
 			</td>
-			<td><input type="text" name="attributes_mapping[{$class_attribute.identifier}][static_value]" value="{$config.attributes_mapping[$class_attribute.identifier].static_value}" /></td>
-			<td><input type="text" name="attributes_mapping[{$class_attribute.identifier}][callback]" value="{$config.attributes_mapping[$class_attribute.identifier].callback}" /></td>
+			<td><input type="text" name="attributes_mapping[{$class_attribute.identifier}][static_value]" value="{$config.attributes_mapping[$class_attribute.identifier].static_value}" class="static-value" /></td>
+			<td><input type="text" name="attributes_mapping[{$class_attribute.identifier}][callback]" value="{$config.attributes_mapping[$class_attribute.identifier].callback}" class="callback" /></td>
 		</tr>
 		{/foreach}
 		<tr>
 			<td colspan="3"><strong>{'Remote ID'|i18n( 'extension/nxc_import' )}</strong></td>
 			<td>
 				<select name="attributes_mapping[remote_id][csv_column]">
-					<option value="-1">{'Is not imported'|i18n( 'extension/nxc_import' )}</option>
-					{for 0 to 999 as $i}
+					<option value="-1">{'Skip'|i18n( 'extension/nxc_import' )}</option>
+					{for 1 to 99 as $i}
 					<option value="{$i}"{if and( is_set( $config.attributes_mapping.remote_id ), eq( $config.attributes_mapping.remote_id.csv_column, $i ) )} selected="selected"{/if}>{$i}</option>
 					{/for}
 				</select>
 			</td>
 			<td>&nbsp;</td>
-			<td><input type="text" name="attributes_mapping[remote_id][callback]" value="{$config.attributes_mapping.remote_id.callback}" /></td>
+			<td><input type="text" name="attributes_mapping[remote_id][callback]" value="{$config.attributes_mapping.remote_id.callback}" class="callback" /></td>
 		</tr>
 	</tbody>
 </table>

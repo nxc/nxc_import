@@ -10,12 +10,13 @@ class nxcImportController
 {
 	public $config;
 	public $counter = array(
+		'skip'   => 0,
 		'create' => 0,
 		'update' => 0,
-		'remove' => 0,
-		'skip'   => 0
+		'remove' => 0
 	);
 	public $statistics = array(
+		'skip'   => array(),
 		'create' => array(),
 		'update' => array(),
 		'remove' => array()
@@ -23,13 +24,17 @@ class nxcImportController
 	private $cli;
 	private $pcHandler;
 	private $logFileHandler;
+	private $isLogEnabled;
 
-	public function __construct( nxcImportConfig $config, $cli = false ) {
+	public function __construct( nxcImportConfig $config, $cli = false, $log = true ) {
 		$this->config    = $config;
-		$this->cli       = $cli;
 		$this->pcHandler = new nxcPowerContent( $cli );
 
-		$this->logFileHandler = fopen( 'var/log/import.log', 'a' );
+		$this->isLogEnabled = $log;
+		if( $this->isLogEnabled ) {
+			$this->cli = $cli;
+			$this->logFileHandler = fopen( 'var/log/import.log', 'a' );
+		}
 	}
 
 	public function run( $remove = false, $useStateHashes = true, $update = true, $create = true ) {
@@ -63,12 +68,14 @@ class nxcImportController
 				$result = $this->config->preProcessCallback( $object, $objectData );
 				if( $result === false ) {
 					$this->debug( '[Skipped by preProcessCallback] Remote ID: "' . $objectData['remoteID'] . '"', array( 'blue' ) );
+					$this->skip( $object, $objectData );
 					continue;
 				}
 
 				if( $object instanceof eZContentObject ) {
 					if( $update === false ) {
 						$this->debug( '[Skipped] "' . $object->attribute( 'name' ) . '"', array( 'blue' ) );
+						$this->skip( $object, $objectData );
 					} else {
 						$storedStateHash = nxcImportStateHash::get( $objectData['remoteID'] );
 						if(
@@ -79,7 +86,7 @@ class nxcImportController
 								'[Skipped] "' . $object->attribute( 'name' ) . '" (Node ID: ' . $object->attribute( 'main_node_id' ) . ')',
 								array( 'blue' )
 							);
-							$this->counter['skip']++;
+							$this->skip( $object, $objectData );
 						} else {
 							$parentNode = false;
 							if( $objectData['mainParentNodeID'] !== false ) {
@@ -89,8 +96,8 @@ class nxcImportController
 								$objectData['mainParentNodeID'] !== false
 								&& $parentNode instanceof eZContentObjectTreeNode === false
 							) {
-								$this->statistics['remove'][] = $object->attribute( 'name' );
-								$this->counter['remove']++;
+								$this->remove( $object, $objectData );
+
 								nxcImportStateHash::remove( $object->attribute( 'remote_id' ) );
 								$this->pcHandler->removeObject( $object );
 							} else {
@@ -105,8 +112,8 @@ class nxcImportController
 								}
 
 								$this->pcHandler->updateObject( $params );
-								$this->statistics['update'][] = $object->attribute( 'name' );
-								$this->counter['update']++;
+								$this->update( $object, $objectData );
+
 								nxcImportStateHash::update( $objectData['remoteID'], $currentStateHash );
 								$object->resetDataMap();
 								eZContentObject::clearCache( $object->attribute( 'id' ) );
@@ -116,6 +123,7 @@ class nxcImportController
 				} else {
 					if( $create === false ) {
 						$this->debug( '[Skipped]', array( 'blue' ) );
+						$this->skip( $object, $objectData );
 					} else {
 						$object = $this->pcHandler->createObject(
 							array(
@@ -129,8 +137,7 @@ class nxcImportController
 							)
 						);
 						if( $object instanceof eZContentObject ) {
-							$this->statistics['create'][] = $object->attribute( 'name' );
-							$this->counter['create']++;
+							$this->create( $object, $objectData );
 							nxcImportStateHash::update( $objectData['remoteID'], $currentStateHash );
 
 							if( $objectData['mainNodePriority'] !== false ) {
@@ -152,13 +159,43 @@ class nxcImportController
 				$publishedObjects = $contentClass->objectList();
 				foreach( $publishedObjects as $object ) {
 					if( in_array( $object->attribute( 'remote_id' ), $allOjectsInFeedRemoteIDs ) === false ) {
-						$this->statistics['remove'][] = $object->attribute( 'name' );
-						$this->counter['remove']++;
+						$this->remove( $object, $objectData );
+
 						nxcImportStateHash::remove( $object->attribute( 'remote_id' ) );
 						$this->pcHandler->removeObject( $object );
 					}
 				}
 			}
+		}
+	}
+
+	public function skip( $object, array $objectData ) {
+		$this->doStatAction( 'skip', $object );
+	}
+
+	public function create( $object, array $objectData ) {
+		$this->doStatAction( 'create', $object );
+	}
+
+	public function update( $object, array $objectData ) {
+		$this->doStatAction( 'update', $object );
+	}
+
+	public function remove( $object, array $objectData ) {
+		$this->doStatAction( 'remove', $object );
+	}
+
+	private function doStatAction( $action, $object, array $objectData ) {
+		$this->counter[ $action ]++;
+		if( $object instanceof eZContentObject ) {
+			$this->statistics[ $action ][] = $object->attribute( 'name' );
+		}
+	}
+
+	public function log( $message, array $styles = array( 'green' ) ) {
+		if( $this->isLogEnabled ) {
+			$this->debug( $message, $styles );
+			fwrite( $this->logFileHandler, '[' . date( DATE_RFC822 ) . '] ' . $message . "\n" );
 		}
 	}
 
@@ -171,14 +208,10 @@ class nxcImportController
 		}
 	}
 
-	public function log( $message, array $styles = array( 'green' ) ) {
-		$this->debug( $message, $styles );
-
-		fwrite( $this->logFileHandler, '[' . date( DATE_RFC822 ) . '] ' . $message . "\n" );
-	}
-
 	public function __destruct() {
-		fwrite( $this->logFileHandler, '-------------------------------------------------------' . "\n" );
-		fclose( $this->logFileHandler );
+		if( $this->isLogEnabled ) {
+			fwrite( $this->logFileHandler, '-------------------------------------------------------' . "\n" );
+			fclose( $this->logFileHandler );
+		}
 	}
 };
