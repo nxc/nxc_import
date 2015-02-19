@@ -170,19 +170,19 @@ class nxcImportController
 	}
 
 	public function skip( $object, array $objectData ) {
-		$this->doStatAction( 'skip', $object );
+		$this->doStatAction( 'skip', $object, $objectData );
 	}
 
 	public function create( $object, array $objectData ) {
-		$this->doStatAction( 'create', $object );
+		$this->doStatAction( 'create', $object, $objectData );
 	}
 
 	public function update( $object, array $objectData ) {
-		$this->doStatAction( 'update', $object );
+		$this->doStatAction( 'update', $object, $objectData );
 	}
 
 	public function remove( $object, array $objectData ) {
-		$this->doStatAction( 'remove', $object );
+		$this->doStatAction( 'remove', $object, $objectData );
 	}
 
 	private function doStatAction( $action, $object, array $objectData ) {
