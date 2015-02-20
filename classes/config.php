@@ -149,7 +149,7 @@ abstract class nxcImportConfig
 		return true;
 	}
 
-	public function postProcessCallback( $object, array $objectData ) {
+	public function postProcessCallback( $object, array $objectData, $skipped = false ) {
 		return true;
 	}
 

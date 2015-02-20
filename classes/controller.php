@@ -72,10 +72,12 @@ class nxcImportController
 					continue;
 				}
 
+				$skipped = false;
 				if( $object instanceof eZContentObject ) {
 					if( $update === false ) {
 						$this->debug( '[Skipped] "' . $object->attribute( 'name' ) . '"', array( 'blue' ) );
 						$this->skip( $object, $objectData );
+						$skipped = true;
 					} else {
 						$storedStateHash = nxcImportStateHash::get( $objectData['remoteID'] );
 						if(
@@ -87,6 +89,7 @@ class nxcImportController
 								array( 'blue' )
 							);
 							$this->skip( $object, $objectData );
+							$skipped = true;
 						} else {
 							$parentNode = false;
 							if( $objectData['mainParentNodeID'] !== false ) {
@@ -124,6 +127,7 @@ class nxcImportController
 					if( $create === false ) {
 						$this->debug( '[Skipped]', array( 'blue' ) );
 						$this->skip( $object, $objectData );
+						$skipped = true;
 					} else {
 						$object = $this->pcHandler->createObject(
 							array(
@@ -151,7 +155,7 @@ class nxcImportController
 					}
 				}
 
-				$this->config->postProcessCallback( $object, $objectData );
+				$this->config->postProcessCallback( $object, $objectData, $skipped );
 			}
 
 			$allOjectsInFeedRemoteIDs = array_unique( $allOjectsInFeedRemoteIDs );
